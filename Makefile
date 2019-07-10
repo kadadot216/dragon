@@ -1,9 +1,15 @@
-PREFIX = $(HOME)/.local/bin
+PREFIX =   $(HOME)/.local/bin
+LDLIBS =  `pkg-config --libs gtk+-3.0`
+CFLAGS += `pkg-config --cflags gtk+-3.0`
+CFLAGS += -Iinclude
+SRC    = ./src/dragon.c
+OBJ    = $(SRC:.c=.o)
+NAME   = dragon
 
-all: dragon
+all: $(NAME)
 
-dragon: dragon.c
-	$(CC) --std=c99 -Wall $(DEFINES) dragon.c -o dragon `pkg-config --cflags gtk+-3.0` `pkg-config --libs gtk+-3.0`
+$(NAME): $(OBJ)
+	$(CC) --std=c99 -Wall $(DEFINES) $^ -o $(NAME) $(CFLAGS) $(LDLIBS)
 
 install: dragon
 	mkdir -p $(PREFIX)

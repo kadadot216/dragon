@@ -1,31 +1,21 @@
-// dragon - very lightweight DnD file source/target
-// Copyright 2014 Michael Homer.
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#define _POSIX_C_SOURCE 200809L
-#define _XOPEN_SOURCE 500
-#include <gtk/gtk.h>
-#include <gdk/gdk.h>
-#include <gdk/gdkkeysyms.h>
-#include <gio/gio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
+/* dragon - very lightweight DnD file source/target
+** Copyright 2014 Michael Homer.
+**
+** This program is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation, either version 3 of the License, or
+** (at your option) any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
-#define VERSION "1.1.0"
-
+#include "dragon.h"
 
 GtkWidget *window;
 GtkWidget *vbox;
@@ -38,18 +28,7 @@ bool and_exit;
 bool keep;
 bool print_path = false;
 
-#define MODE_HELP 1
-#define MODE_TARGET 2
-#define MODE_VERSION 4
 
-#define TARGET_TYPE_TEXT 1
-#define TARGET_TYPE_URI 2
-
-struct draggable_thing {
-    char *text;
-    char *uri;
-    guint last_time;
-};
 
 // MODE_ALL
 #define MAX_SIZE 100
@@ -65,7 +44,7 @@ void do_quit(GtkWidget *widget, gpointer data) {
 }
 
 void button_clicked(GtkWidget *widget, gpointer user_data) {
-    struct draggable_thing *dd = (struct draggable_thing *)user_data;
+    draggable_t *dd = (draggable_t *)user_data;
     if (0 == fork()) {
         execlp("xdg-open", "xdg-open", dd->uri, NULL);
     }
@@ -82,7 +61,7 @@ void drag_data_get(GtkWidget    *widget,
                guint             info,
                guint             time,
                gpointer          user_data) {
-    struct draggable_thing *dd = (struct draggable_thing *)user_data;
+    draggable_t *dd = (draggable_t *)user_data;
     if (info == TARGET_TYPE_URI) {
         if (verbose)
             fprintf(stderr, "Writing as URI: %s\n", dd->uri);
@@ -107,7 +86,7 @@ void drag_data_get(GtkWidget    *widget,
     }
 }
 
-GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
+GtkButton *add_button(char *label, draggable_t *dragdata, int type) {
     GtkWidget *button = gtk_button_new_with_label(label);
 
     GtkTargetList *targetlist = gtk_drag_source_get_target_list(GTK_WIDGET(button));
@@ -157,7 +136,7 @@ void add_file_button(GFile *file) {
         exit(1);
     }
     char *uri = g_file_get_uri(file);
-    struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
+    draggable_t *dragdata = malloc(sizeof(draggable_t));
     dragdata->text = filename;
     dragdata->uri = uri;
 
@@ -191,7 +170,7 @@ void add_filename_button(char *filename) {
 }
 
 void add_uri_button(char *uri) {
-    struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
+    draggable_t *dragdata = malloc(sizeof(draggable_t));
     dragdata->text = uri;
     dragdata->uri = uri;
     GtkButton *button = add_button(uri, dragdata, TARGET_TYPE_URI);
